@@ -1,0 +1,24 @@
+/*
+ * Devicetree overlay for the ST Nucleo-F401RE.
+ *
+ * WHAT IS THIS: an overlay is DT source that is MERGED on top of the board's
+ * own .dts at build time. It's how you describe/adjust hardware without
+ * touching the board files. This is pillar #2 of Zephyr (device tree) and the
+ * thing that makes Zephyr different from a bare RTOS like FreeRTOS.
+ *
+ * The board already defines:  alias led0  (green LD2, PA5),  alias sw0 (user btn).
+ * So your code can already do GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios).
+ *
+ * Below we ALSO expose a GPIO under the standard `zephyr,user` node, to show
+ * the mechanism (grab any pin from DT in your app). Adjust the pin as needed.
+ */
+
+#include <zephyr/dt-bindings/gpio/gpio.h>
+
+/ {
+    zephyr,user {
+        /* HIGH task can toggle this to make its execution visible on a scope/LED.
+         * PA5 is the on-board green LED. */
+        hi-task-gpios = <&gpioa 5 GPIO_ACTIVE_HIGH>;
+    };
+};
