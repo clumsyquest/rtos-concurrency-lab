@@ -46,7 +46,7 @@ west build -b qemu_cortex_m3 apps/01-priority-inversion -t run
 west twister -T tests/concurrency -p qemu_cortex_m3
 ```
 
-## Results (fill with YOUR measurements)
+## Results
 
 ### Demo 01 — Priority inversion (semaphore)
 
@@ -159,7 +159,7 @@ docs/            captures (Gantt PNGs, logs, photos)
 
 - [Done ] 01 - reproduce + measure the inversion (semaphore), toggle LED via DT
 - [Done ] 02 - fix with a mutex, measure the contrast
-- [ ] 03 - deadlock + fix
+- [Done ] 03 - deadlock + fix
 - [ ] 04 - instrumentation + Gantt
 - [ ] ztest assertions in tests/concurrency
 - [ ] CI (GitHub Actions): build every app + run twister
@@ -167,4 +167,4 @@ docs/            captures (Gantt PNGs, logs, photos)
 
 ## License
 
-MIT (or your choice).
+MIT.
