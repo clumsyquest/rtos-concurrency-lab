@@ -2,10 +2,10 @@ cmake_minimum_required(VERSION 3.20.0)
 
 # Apply our shared device tree overlay (pillar #2).
 # MUST be set BEFORE find_package(Zephyr).
-set(EXTRA_DTC_OVERLAY_FILE ${CMAKE_CURRENT_SOURCE_DIR}/../../boards/nucleo_f401re.overlay)
+#set(EXTRA_DTC_OVERLAY_FILE ${CMAKE_CURRENT_SOURCE_DIR}/../../boards/nucleo_f401re.overlay)
 
 # Pull in the whole Zephyr build system (toolchain, Kconfig, device tree...).
-find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
+find_package(Zephyr)
 project(priority_inheritance)
 
 # 'app' is the library target Zephyr predefines; we attach our sources to it.

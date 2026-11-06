@@ -67,12 +67,38 @@ Note: on real hardware the blocking time is deterministic to the microsecond
 behaviour must be validated on target, not only in emulation.
 
 
-| Scenario | HIGH task blocking time |
-|----------|-------------------------|
-| 01 - semaphore (inversion) | 38000 µs_ |
-| 02 - mutex (inheritance)   | _TODO µs_ |
+### Demo 02 — Priority inheritance (mutex)
 
-Gantt of the inversion: _TODO (docs/inversion.png)_
+Same 3-task scenario as demo 01, but the lock is a `k_mutex` instead of a binary
+semaphore. Zephyr mutexes implement **priority inheritance**.
+
+**Result — the inversion is fixed.** When HIGH blocks on the mutex held by LOW,
+the kernel boosts LOW to HIGH's priority, so LOW outranks MED, finishes its
+critical section and releases at once. MED can no longer interpose between HIGH
+requesting the lock and HIGH acquiring it.
+
+| Scenario | HIGH blocking time | MED interposes? |
+|----------|--------------------|-----------------|
+| Demo 01 (semaphore)        | ~14–38 ms, unbounded | **yes** |
+| Demo 02 (mutex), QEMU      | ~1–3 ms              | no |
+| Demo 02 (mutex), hardware  | ~14–33 ms (see note) | no |
+
+Hardware log (nucleo_f401re) — MED never runs between `H ready` and `H running`:
+
+​```text
+L running
+H ready to take s
+L gave s back       # LOW, boosted to HIGH's priority, releases immediately
+H running           # no MED in between (compare demo 01)
+​```
+
+**Measurement note.** On hardware the absolute `elapsed time` is inflated by
+~14 ms: three `LOG_INF` calls sit inside the measured window and synchronous
+logging over the 115200-baud UART is slow. QEMU (instant console) shows the true
+cost (~1–3 ms). The hardware log is kept as behavioural proof that MED no longer
+interposes; the remaining worst case (~33 ms) is LOW's critical section, now
+**bounded** — not MED interference. A cleaner measurement moves logging outside
+the t1/t2 window.
 
 ## Repo layout
 
@@ -88,8 +114,8 @@ docs/            captures (Gantt PNGs, logs, photos)
 
 ## Roadmap
 
-- [ ] 01 - reproduce + measure the inversion (semaphore), toggle LED via DT
-- [ ] 02 - fix with a mutex, measure the contrast
+- [Done ] 01 - reproduce + measure the inversion (semaphore), toggle LED via DT
+- [Done ] 02 - fix with a mutex, measure the contrast
 - [ ] 03 - deadlock + fix
 - [ ] 04 - instrumentation + Gantt
 - [ ] ztest assertions in tests/concurrency
