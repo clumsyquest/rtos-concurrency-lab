@@ -9,15 +9,6 @@
  * GOAL: show the deadlock (logs stop progressing), then FIX it by enforcing a
  *       global lock ordering (always take m1 before m2), or by using a timeout
  *       on k_mutex_lock and backing off.
- *
- * TODO
- *  [ ] Create m1, m2 and threads A, B with the crossed locking order.
- *  [ ] Add logs before/after each lock so the freeze is visible.
- *  [ ] Then implement the fix (same lock order, or timeout + retry) and show
- *      the system no longer deadlocks.
- *
- * Useful APIs: k_mutex_init, k_mutex_lock(&m, K_MSEC(x)) returns -EAGAIN on
- *              timeout, k_mutex_unlock, k_msleep().
  */
 
 #include <zephyr/kernel.h>
@@ -54,17 +45,17 @@ while(1){
 void B(void *p1, void *p2, void *p3){
 
 while(1){
-        k_mutex_lock(&m2,K_FOREVER);
-        printk("B took m2\n");
-        k_msleep(15);
-        printk("B waiting for m1\n");
         k_mutex_lock(&m1,K_FOREVER);
         printk("B took m1\n");
+        k_msleep(15);
+        printk("B waiting for m2\n");
+        k_mutex_lock(&m2,K_FOREVER);
+        printk("B took m2\n");
         k_msleep(10);
-        k_mutex_unlock(&m1);
-        printk("B freed m1\n");
         k_mutex_unlock(&m2);
         printk("B freed m2\n");
+        k_mutex_unlock(&m1);
+        printk("B freed m1\n");
         k_msleep(10);}
 
 }
