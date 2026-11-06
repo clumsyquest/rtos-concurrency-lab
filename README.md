@@ -100,6 +100,49 @@ interposes; the remaining worst case (~33 ms) is LOW's critical section, now
 **bounded** — not MED interference. A cleaner measurement moves logging outside
 the t1/t2 window.
 
+### Demo 03 — Deadlock (two mutexes) and its fixes
+
+Two tasks, two mutexes, acquired in **crossed order**: A locks m1 then m2,
+B locks m2 then m1. A short sleep after the first lock lets both grab their
+first mutex, then each waits on the other's — a **circular wait**. A low-priority
+heartbeat task keeps printing, proving the system is not crashed: A and B are
+logically stuck.
+
+**Deadlock reproduced:**
+
+​```text
+A took m1
+B took m2
+A waiting for m2
+B waiting for m1
+app: still alive
+app: still alive
+...            # A and B frozen forever; only the heartbeat runs
+​```
+
+A deadlock needs all four **Coffman conditions**: mutual exclusion, hold-and-wait,
+no preemption, circular wait. Each fix below breaks one of them.
+
+**Fix 1 — lock ordering (canonical).** Everyone acquires locks in the same global
+order (always m1 before m2). No task ever holds m2 while requesting m1, so the
+circular wait is impossible. Clean, no churn. This is the fix used in the repo.
+
+**Fix 2 — timeout + backoff (alternative).** Keep the crossed order, but take the
+second lock with a timeout (`k_mutex_lock(&m, K_MSEC(1))`). On `-EAGAIN`, release
+the lock already held and retry. This breaks hold-and-wait:
+
+​```text
+A took m1
+B took m2
+A waiting for m2
+A failed to take m2     # timeout -> A releases m1 and retries
+B took m1
+...                     # progress continues, never freezes
+​```
+
+Trade-off: pure backoff can **livelock** if both tasks retry in lockstep;
+real code adds **randomised (jittered) backoff** to desynchronise them.
+
 ## Repo layout
 
 ```

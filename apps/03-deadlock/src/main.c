@@ -31,7 +31,11 @@ while(1){
 	printk("A took m1\n");
 	k_msleep(10);
         printk("A waiting for m2\n");
-	k_mutex_lock(&m2,K_FOREVER);
+	int ret= k_mutex_lock(&m2,K_MSEC(1));
+	if (ret<0){
+	    printk("A failed to take m2\n");
+	    k_mutex_unlock(&m1);
+	    continue;}
 	printk("A took m2\n");
         k_msleep(10);
 	k_mutex_unlock(&m2);
@@ -45,17 +49,21 @@ while(1){
 void B(void *p1, void *p2, void *p3){
 
 while(1){
-        k_mutex_lock(&m1,K_FOREVER);
-        printk("B took m1\n");
-        k_msleep(15);
-        printk("B waiting for m2\n");
         k_mutex_lock(&m2,K_FOREVER);
         printk("B took m2\n");
+        k_msleep(15);
+        printk("B waiting for m1\n");
+        int ret= k_mutex_lock(&m1,K_MSEC(1));
+        if (ret<0){
+            printk("B failed to take m1\n");
+            k_mutex_unlock(&m2);
+            continue;} 
+       printk("B took m1\n");
         k_msleep(10);
-        k_mutex_unlock(&m2);
-        printk("B freed m2\n");
         k_mutex_unlock(&m1);
         printk("B freed m1\n");
+        k_mutex_unlock(&m2);
+        printk("B freed m2\n");
         k_msleep(10);}
 
 }
