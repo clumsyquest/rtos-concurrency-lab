@@ -160,7 +160,7 @@ docs/            captures (Gantt PNGs, logs, photos)
 - [Done ] 01 - reproduce + measure the inversion (semaphore), toggle LED via DT
 - [Done ] 02 - fix with a mutex, measure the contrast
 - [Done ] 03 - deadlock + fix
-- [ ] 04 - instrumentation + Gantt
+- [Done ] 04 - instrumentation + Gantt
 - [ ] ztest assertions in tests/concurrency
 - [ ] CI (GitHub Actions): build every app + run twister
 - [ ] README write-up with measured numbers and captures
